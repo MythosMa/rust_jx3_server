@@ -2,12 +2,15 @@ mod config;
 mod db;
 mod models;
 mod routes;
+mod services;
 
 use axum::Router;
 use config::Config;
 use db::create_pool;
 use routes::api_tests;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::routes::calendar_routes;
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +22,10 @@ async fn main() {
     let cfg = Config::from_env();
     let pool = create_pool(&cfg).await;
 
-    let app = Router::new().merge(api_tests::routes()).with_state(pool);
+    let app = Router::new()
+        .merge(api_tests::routes())
+        .merge(calendar_routes::routes())
+        .with_state(pool);
 
     let addr = format!("0.0.0.0:{}", cfg.server_port);
     tracing::info!("🚀 Server running at {}", addr);
