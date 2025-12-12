@@ -1,4 +1,5 @@
 mod config;
+mod core;
 mod db;
 mod models;
 mod routes;
@@ -24,6 +25,7 @@ async fn main() {
 
     let app = Router::new()
         .merge(api_tests::routes())
+        .merge(routes::server_routes::routes())
         .merge(calendar_routes::routes())
         .with_state(pool);
 
