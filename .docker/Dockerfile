@@ -18,6 +18,8 @@ RUN cargo fetch --locked
 RUN rm -f src/main.rs
 COPY src ./src
 
+COPY .sqlx .sqlx
+
 # 5. 真正构建
 RUN SQLX_OFFLINE=true cargo build --release --locked
 
