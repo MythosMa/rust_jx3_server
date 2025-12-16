@@ -3,14 +3,14 @@ use reqwest::Client;
 use serde_json::Value;
 use sqlx::MySqlPool;
 
+use crate::core::client::HTTP_CLIENT;
 use crate::core::error::AppError;
 use crate::models::calendar::CalendarData;
 use crate::models::calendar::CalendarRequest;
 
 pub async fn fetch_jx3_data(request: &CalendarRequest) -> Result<Value, reqwest::Error> {
-    let client = Client::new();
     let url = "https://www.jx3api.com/data/active/calendar";
-    let response = client
+    let response = HTTP_CLIENT
         .post(url)
         .json(request)
         .send()
@@ -49,7 +49,10 @@ pub async fn get_today_calendar(
         num: Some(0),
     };
 
-    let api_response = fetch_jx3_data(&request).await?;
+    let api_response = fetch_jx3_data(&request).await.map_err(|e| {
+        eprintln!("jx3 api error: {:#?}", e);
+        AppError::from(e)
+    })?;
 
     let now = Utc::now().naive_utc();
 
@@ -64,11 +67,12 @@ pub async fn get_today_calendar(
     .await?;
 
     // 获取刚插入的 ID
-    let id: i64 = sqlx::query_scalar!("SELECT LAST_INSERT_ID()")
+    let last_id_u64: u64 = sqlx::query_scalar!("SELECT LAST_INSERT_ID()")
         .fetch_one(pool)
-        .await?
-        .try_into()
-        .unwrap();
+        .await?;
+
+    let id = i64::try_from(last_id_u64)
+        .map_err(|_| sqlx::Error::Decode("LAST_INSERT_ID() exceeds i64::MAX".into()))?;
 
     // 5. 构造返回对象
     let result = CalendarData {

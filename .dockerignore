@@ -1,0 +1,26 @@
+# .dockerignore
+
+# 忽略所有 .env 文件（开发/生产配置）
+.env*
+!.env.example        # 可选：保留示例文件（如果你有）
+
+# 忽略 Git 相关
+.git
+.gitignore
+
+# 忽略构建产物（避免污染上下文）
+/target
+Cargo.lock           # 注意：通常应保留 Cargo.lock！见下方说明 ⚠️
+**/*.rs.bk
+**/*.bk
+
+# 忽略 IDE / 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 忽略日志、临时文件
+logs/
+*.log
+tmp/

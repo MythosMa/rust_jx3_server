@@ -1,31 +1,37 @@
-# 构建阶段：使用官方 Rust 镜像
-FROM rust:latest AS builder
+# .docker/Dockerfile
+
+# --- 构建阶段 ---
+FROM rust:bookworm AS builder
 
 WORKDIR /app
 
-# 复制依赖信息，利用 Docker 缓存加速构建
+# 1. 复制依赖文件
 COPY Cargo.toml Cargo.lock ./
-RUN mkdir -p src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release --locked
 
-# 复制全部源码并真正构建
-COPY . .
-RUN cargo build --release --locked
+# 2. 创建临时 src/main.rs（让 Cargo 认为这是个有效二进制包）
+RUN mkdir -p src && echo "fn main() { panic!(\"This is a dummy binary!\"); }" > src/main.rs
 
-# 运行阶段：使用 Debian Slim（必须 glibc）
+# 3. 现在可以安全运行 cargo fetch（会缓存依赖）
+RUN cargo fetch --locked
+
+# 4. 删除临时文件，替换为真实源码
+RUN rm -f src/main.rs
+COPY src ./src
+
+# 5. 真正构建
+RUN SQLX_OFFLINE=true cargo build --release --locked
+
+
+# --- 运行阶段 ---
 FROM debian:bookworm-slim
 
 WORKDIR /app
 
-# 运行依赖
-RUN apt-get update && apt-get install -y \
-  ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends ca-certificates && \
+  rm -rf /var/lib/apt/lists/*
 
-# 复制 Rust 二进制
 COPY --from=builder /app/target/release/rust_jx3_server .
-
-RUN chmod +x rust_jx3_server
 
 EXPOSE 3000
 

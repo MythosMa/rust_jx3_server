@@ -29,7 +29,7 @@ async fn main() {
         .merge(calendar_routes::routes())
         .with_state(pool);
 
-    let addr = format!("0.0.0.0:{}", cfg.server_port);
+    let addr = format!("0.0.0.0:{}", 3000);
     tracing::info!("🚀 Server running at {}", addr);
 
     axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
