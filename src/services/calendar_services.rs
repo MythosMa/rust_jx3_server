@@ -1,5 +1,4 @@
 use chrono::Utc;
-use reqwest::Client;
 use serde_json::Value;
 use sqlx::MySqlPool;
 

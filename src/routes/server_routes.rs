@@ -1,8 +1,4 @@
-use axum::{
-    Json, Router,
-    extract::{Query, State},
-    routing::get,
-};
+use axum::{Json, Router, extract::State, routing::get};
 use sqlx::MySqlPool;
 
 use crate::{models::server::Server, services::server_services::get_server_list};

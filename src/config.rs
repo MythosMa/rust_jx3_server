@@ -5,9 +5,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub env: String,
     pub database_url: String,
-    pub server_port: u16,
 }
 
 impl Config {
