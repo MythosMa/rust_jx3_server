@@ -7,7 +7,7 @@ use crate::core::error::AppError;
 use crate::models::calendar::CalendarData;
 use crate::models::calendar::CalendarRequest;
 
-pub async fn fetch_jx3_data(request: &CalendarRequest) -> Result<Value, reqwest::Error> {
+pub async fn fetch_jx3_data(request: &CalendarRequest) -> Result<Value, AppError> {
     let url = "https://www.jx3api.com/data/active/calendar";
     let response = HTTP_CLIENT
         .post(url)
@@ -17,7 +17,26 @@ pub async fn fetch_jx3_data(request: &CalendarRequest) -> Result<Value, reqwest:
         .json::<Value>()
         .await?;
 
-    Ok(response)
+    let code = response
+        .get("code")
+        .and_then(|v| v.as_i64())
+        .ok_or_else(|| AppError::ExternalApiError("missing 'code' field".into()))?;
+
+    if code != 200 {
+        let msg = response
+            .get("msg")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown");
+        return Err(AppError::ExternalApiError(format!(
+            "jx3 API error ({}): {}",
+            code, msg
+        )));
+    }
+
+    response
+        .get("data")
+        .cloned()
+        .ok_or_else(|| AppError::ExternalApiError("missing 'data' field".into()))
 }
 
 pub async fn get_today_calendar(

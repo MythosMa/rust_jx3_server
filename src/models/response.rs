@@ -10,7 +10,7 @@ pub struct ApiResponse<T> {
 impl<T> ApiResponse<T> {
     pub fn success(data: T) -> Self {
         Self {
-            code: 0,
+            code: 200,
             msg: "success".to_string(),
             data: Some(data),
         }

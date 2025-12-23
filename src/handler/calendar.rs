@@ -4,14 +4,19 @@ use axum::{
 };
 use sqlx::MySqlPool;
 
-use crate::{models::calendar::CalendarRequest, services::calendar::get_today_calendar};
+use crate::{
+    core::error::AppError,
+    models::{
+        calendar::{CalendarData, CalendarRequest},
+        response::ApiResponse,
+    },
+    services::calendar::get_today_calendar,
+};
 
 pub async fn calendar_handler(
     State(pool): State<MySqlPool>,
     Query(params): Query<CalendarRequest>,
-) -> Result<Json<crate::models::calendar::CalendarData>, String> {
-    match get_today_calendar(&pool, params.server).await {
-        Ok(data) => Ok(Json(data)),
-        Err(e) => Err(e.to_string()),
-    }
+) -> Result<Json<ApiResponse<CalendarData>>, AppError> {
+    let calendar_data = get_today_calendar(&pool, params.server).await?;
+    Ok(Json(ApiResponse::success(calendar_data)))
 }
