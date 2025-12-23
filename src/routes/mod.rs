@@ -1,3 +1,3 @@
 pub mod api_tests;
-pub mod calendar_routes;
-pub mod server_routes;
+pub mod calendar;
+pub mod server_list;

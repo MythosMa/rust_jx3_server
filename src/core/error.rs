@@ -1,32 +1,70 @@
+// src/core/error.rs
+
+use axum::{
+    Json,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use reqwest;
 use serde_json;
 use sqlx;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub struct AppError(pub String);
+use crate::models::response::ApiResponse;
 
-impl std::fmt::Display for AppError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+#[derive(Debug, Error)]
+pub enum AppError {
+    #[error("Database error: {0}")]
+    DatabaseError(String),
 
-impl std::error::Error for AppError {}
+    #[error("Not found")]
+    NotFound,
 
-impl From<reqwest::Error> for AppError {
-    fn from(err: reqwest::Error) -> Self {
-        AppError(format!("HTTP error: {}", err))
-    }
+    #[error("Invalid parameters: {0}")]
+    InvalidParams(String),
+
+    #[error("External API error: {0}")]
+    ExternalApiError(String),
+
+    #[error("HTTP request failed: {0}")]
+    HttpRequestError(#[from] reqwest::Error),
+
+    #[error("JSON processing failed: {0}")]
+    JsonError(#[from] serde_json::Error),
+
+    #[error("Internal server error")]
+    InternalError,
 }
 
 impl From<sqlx::Error> for AppError {
     fn from(err: sqlx::Error) -> Self {
-        AppError(format!("Database error: {}", err))
+        AppError::DatabaseError(err.to_string())
     }
 }
 
-impl From<serde_json::Error> for AppError {
-    fn from(err: serde_json::Error) -> Self {
-        AppError(format!("JSON error: {}", err))
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status, code, msg) = match self {
+            AppError::NotFound => (StatusCode::NOT_FOUND, 404, self.to_string()),
+            AppError::InvalidParams(_) => (StatusCode::BAD_REQUEST, 400, self.to_string()),
+            AppError::DatabaseError(_) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, 500, self.to_string())
+            }
+            AppError::ExternalApiError(_) => (StatusCode::BAD_GATEWAY, 502, self.to_string()),
+            AppError::HttpRequestError(_) => (StatusCode::BAD_GATEWAY, 502, self.to_string()),
+            AppError::JsonError(_) => (StatusCode::INTERNAL_SERVER_ERROR, 500, self.to_string()),
+            AppError::InternalError => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                500,
+                "Internal server error".into(),
+            ),
+        };
+
+        let resp = ApiResponse::<()> {
+            code,
+            msg,
+            data: None,
+        };
+        (status, Json(resp)).into_response()
     }
 }

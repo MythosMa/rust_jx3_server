@@ -1,6 +1,7 @@
 mod config;
 mod core;
 mod db;
+mod handler;
 mod models;
 mod routes;
 mod services;
@@ -11,7 +12,7 @@ use db::create_pool;
 use routes::api_tests;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::routes::calendar_routes;
+use crate::routes::calendar;
 
 #[tokio::main]
 async fn main() {
@@ -25,8 +26,8 @@ async fn main() {
 
     let app = Router::new()
         .merge(api_tests::routes())
-        .merge(routes::server_routes::routes())
-        .merge(calendar_routes::routes())
+        .merge(routes::server_list::routes())
+        .merge(calendar::routes())
         .with_state(pool);
 
     let addr = format!("0.0.0.0:{}", 3000);

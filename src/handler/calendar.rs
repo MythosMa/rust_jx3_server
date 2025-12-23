@@ -1,15 +1,10 @@
 use axum::{
-    Json, Router,
+    Json,
     extract::{Query, State},
-    routing::get,
 };
 use sqlx::MySqlPool;
 
-use crate::{models::calendar::CalendarRequest, services::calendar_services::get_today_calendar};
-
-pub fn routes() -> Router<MySqlPool> {
-    Router::new().route("/calendar", get(calendar_handler))
-}
+use crate::{models::calendar::CalendarRequest, services::calendar::get_today_calendar};
 
 pub async fn calendar_handler(
     State(pool): State<MySqlPool>,
