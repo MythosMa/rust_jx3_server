@@ -67,10 +67,7 @@ pub async fn get_today_calendar(
         num: Some(0),
     };
 
-    let api_response = fetch_jx3_data(&request).await.map_err(|e| {
-        eprintln!("jx3 api error: {:#?}", e);
-        AppError::from(e)
-    })?;
+    let api_response = fetch_jx3_data(&request).await?;
 
     let now = Utc::now().naive_utc();
 

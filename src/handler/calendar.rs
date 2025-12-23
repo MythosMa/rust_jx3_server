@@ -2,6 +2,7 @@ use axum::{
     Json,
     extract::{Query, State},
 };
+use reqwest::StatusCode;
 use sqlx::MySqlPool;
 
 use crate::{
@@ -16,7 +17,7 @@ use crate::{
 pub async fn calendar_handler(
     State(pool): State<MySqlPool>,
     Query(params): Query<CalendarRequest>,
-) -> Result<Json<ApiResponse<CalendarData>>, AppError> {
+) -> Result<(StatusCode, Json<ApiResponse<CalendarData>>), AppError> {
     let calendar_data = get_today_calendar(&pool, params.server).await?;
-    Ok(Json(ApiResponse::success(calendar_data)))
+    Ok((StatusCode::OK, Json(ApiResponse::success(calendar_data))))
 }

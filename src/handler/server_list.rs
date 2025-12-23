@@ -1,4 +1,5 @@
 use axum::{Json, extract::State};
+use reqwest::StatusCode;
 use sqlx::MySqlPool;
 
 use crate::{
@@ -9,7 +10,7 @@ use crate::{
 
 pub async fn server_handler(
     State(pool): State<MySqlPool>,
-) -> Result<Json<ApiResponse<Vec<Server>>>, AppError> {
+) -> Result<(StatusCode, Json<ApiResponse<Vec<Server>>>), AppError> {
     let server_list = get_server_list(&pool).await?;
-    Ok(Json(ApiResponse::success(server_list)))
+    Ok((StatusCode::OK, Json(ApiResponse::success(server_list))))
 }
