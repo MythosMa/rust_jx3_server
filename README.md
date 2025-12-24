@@ -1,6 +1,12 @@
-## 学习rust用的剑网三api调用，用来制作自己的剑网三相关查询app
+# jx3_server
 
-### 项目结构
+新起步 Rust 和 Flutter 学习。自研 剑网三小助手 服务器
+
+- Flutter 前端
+- Rust 后端
+- 数据库 MySQL
+
+## 项目结构
 ```
 my_rust_server/
   ├── Cargo.toml               # 项目配置文件
@@ -19,7 +25,7 @@ my_rust_server/
   └── Dockerfile                # Docker 配置
 ```
 
-### 构建注意事项
+## 构建注意事项
 1. 项目中使用了sqlx，构建时需要先运行 
 ```
 cargo sqlx prepare
